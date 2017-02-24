@@ -18,6 +18,11 @@ RUN apt-get update \
     && apt-get -y install php$PHP_VERSION \
     && apt-get -y install php$PHP_VERSION-fpm
 
+RUN apt-get install -y php$PHP_VERSION-mysql \
+    && apt-get install -y php$PHP_VERSION-curl \
+    && apt-get install -y php$PHP_VERSION-gd \
+    && apt-get install -y php$PHP_VERSION-dom \
+    && apt-get install -y php$PHP_VERSION-mbstring
 # 引入配置文件
 COPY ./php-fpm.conf /etc/php/$PHP_VERSION/fpm/php-fpm.conf
 COPY ./www.conf /etc/php/$PHP_VERSION/fpm/pool.d/www.conf

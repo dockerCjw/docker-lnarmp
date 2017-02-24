@@ -18,6 +18,12 @@ RUN apt-get update \
   && apt-get -y install php$PHP_VERSION \
   && ls -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/
 
+RUN apt-get install -y php$PHP_VERSION-mysql \
+    && apt-get install -y php$PHP_VERSION-curl \
+    && apt-get install -y php$PHP_VERSION-gd \
+    && apt-get install -y php$PHP_VERSION-dom \
+    && apt-get install -y php$PHP_VERSION-mbstring
+
 # 扩充站点目录(start)
 COPY ./sites-available/* /etc/apache2/sites-available/
 
