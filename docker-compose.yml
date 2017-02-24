@@ -1,0 +1,138 @@
+version: '2'
+services:
+  # mysql 服务
+  mysql:
+    image: mysql:5.7.17                       #使用mysql镜像
+    environment:                              #设置数据库的环境变量
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: "laravel"
+      MYSQL_USER: "cjw"
+      MYSQL_PASSWORD: "123456"
+    ports:                                    # 提供的端口
+      - "3306:3306"
+    volumes:                                  # 添加一个mysql数据的数据卷
+      - mysql:/var/lib/mysql
+
+  # redis 服务
+  redis:
+    image: redis:3.2.7                      #使用redis镜像
+    ports:                                  # 提供的端口
+      - "6379:6379"
+    volumes:                                # 绑定数据卷，以保证持久化
+      - redis:/data
+
+  # apache服务器,内置一个php, 其中版本可以定制
+  apache:
+    build:
+      context: ./apache-php7.1/                     #引入dockerfile的目录
+      dockerfile: Dockerfile                        #引入dockerfile的文件名
+    depends_on:
+      - mysql
+      - redis
+    ports:                                          # 对外开放端口
+      - "8080:80"
+      - "8443:443"
+    volumes:
+    # 挂载数据盘 (PHP的配置文件未挂载，因为变量的原因,但是dockerfile,已经是匿名挂载.)
+      - apache-config:/etc/sites-available/
+      - apache-log:/var/log/sites-available/
+      - apache-php-config:/etc/php/7.1/
+      - /var/www/sites-available:/var/www/sites-available/
+
+  # nginx 服务
+  nginx:
+    build:
+      context: ./nginx/
+      dockerfile: Dockerfile
+    depends_on:
+      - apache
+      - php7.0-fpm
+    ports:                                  # 对外开放端口
+      - "82:80"
+      - "445:443"
+    volumes:
+      - nginx-config:/etc/nginx
+
+  #php5.6-fpm服务
+  php5.6-fpm:
+    build:
+      context: ./php5.6-fpm/
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - /var/www/php5.6:/var/www/php5.6/
+      - php5.6-fpm-config:/etc/php/5.6
+
+  #php7.0-fpm服务
+  php7.0-fpm:
+    build:
+      context: ./php7.0-fpm/
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - /var/www/php7.0:/var/www/php7.0/
+      - php7.0-fpm-config:/etc/php/7.0
+
+  #php7.1-fpm服务
+  php7.1-fpm:
+    build:
+      context: ./php7.1-fpm/
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - /var/www/php7.1:/var/www/php7.1/
+      - php7.1-fpm-config:/etc/php/7.1
+
+  #console 控制台
+  console:
+    build:
+      context: ./console/
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+      - redis
+    volumes_from:
+      - nginx
+      - apache
+      - php5.6-fpm
+      - php7.0-fpm
+      - php7.1-fpm
+    ports:                                  # 对外开放端口
+      - "8022:22"
+
+volumes:
+  # apache的匿名数据卷
+  apache-log:
+    driver: local
+  apache-config:
+    driver: local
+  apache-php-config:
+    driver: local
+
+  # nginx的配置文件
+  nginx-config:
+    driver: local
+
+  # mysql
+  mysql:
+    driver: local
+
+  # redis
+  redis:
+      driver: local
+
+  # php5.6-fpm
+  php5.6-fpm-config:
+      driver: local
+  # php7.0-fpm
+  php7.0-fpm-config:
+      driver: local
+  # php7.1-fpm
+  php7.1-fpm-config:
+      driver: local
