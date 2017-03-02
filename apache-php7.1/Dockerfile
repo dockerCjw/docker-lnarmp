@@ -27,6 +27,8 @@ RUN apt-get install -y php$PHP_VERSION-mysql \
 # 扩充站点目录(start)
 COPY ./sites-available/* /etc/apache2/sites-available/
 
+COPY ./ports.conf /etc/apache2/ports.conf
+
 #  需要使用RUN 进行软连接
 
 # 扩充站点目录(stop)
@@ -35,7 +37,7 @@ COPY ./sites-available/* /etc/apache2/sites-available/
 VOLUME /etc/apache2/
 VOLUME /var/log/apache2/
 VOLUME /etc/php/$PHP_VERSION/
-VOLUME /var/www/apache2/
+VOLUME /var/www/apache2/ 
 
 
 
